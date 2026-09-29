@@ -1,17 +1,10 @@
-# Actions are pinned to commit SHAs and packages to the lockfile (some exactly); this keeps both moving.
+# Actions are pinned to commit SHAs; this keeps the pins moving with their releases.
+# No bun entry yet: Dependabot reads bun.lock only up to lockfileVersion 1, and ours is 2 (the updater fails).
+# Socket reviews every dependency change on pull requests in the meantime. Add the bun entry back, with a
+# 7-day cooldown and one group, once Dependabot supports lockfileVersion 2.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-  - package-ecosystem: bun
-    directory: /
-    schedule:
-      interval: weekly
-    # A week's wait before proposing a release, so a compromised version has time to be caught and pulled.
-    cooldown:
-      default-days: 7
-    groups:
-      dependencies:
-        patterns: ["*"]
