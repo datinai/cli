@@ -1,0 +1,11 @@
+node_modules
+dist
+*.log
+.DS_Store
+.env
+.env.*
+coverage
+# Copied from the root README by prepack.
+packages/cli/README.md
+# Bun compile temp files, left behind when a binary build is interrupted.
+*.bun-build

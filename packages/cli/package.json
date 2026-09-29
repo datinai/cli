@@ -1,0 +1,46 @@
+{
+  "name": "datin",
+  "version": "0.1.0",
+  "description": "The datin CLI: the client your AI agent uses to find you a date",
+  "license": "MIT",
+  "homepage": "https://datinapp.com",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "type": "module",
+  "bin": {
+    "datin": "./dist/bin.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/datinai/cli.git",
+    "directory": "packages/cli"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "bun run build && cp ../../README.md README.md",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "bun run build && bun test"
+  },
+  "dependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
+    "commander": "^15.0.0",
+    "neverthrow": "^8.2.0",
+    "open": "^11.0.0"
+  },
+  "devDependencies": {
+    "@datin/api-client": "workspace:*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.5.1",
+    "tsdown": "0.23.0"
+  }
+}

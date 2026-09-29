@@ -1,0 +1,18 @@
+language js(typescript)
+
+pattern assertion($type) {
+  or {
+    TsAsExpression(ty=$type),
+    TsTypeAssertionExpression(ty=$type)
+  }
+}
+
+or {
+  TsAsExpression(expression=$inner, ty=$outer_type),
+  TsTypeAssertionExpression(expression=$inner, ty=$outer_type)
+} as $chain where {
+  // Only parentheses may separate casts; assertions in call arguments or object fields are independent.
+  $inner <: contains assertion(type=$inner_type) until not JsParenthesizedExpression(),
+  not { $inner_type <: "const", $outer_type <: "const" },
+  register_diagnostic(span=$chain, message="Avoid chained type assertions. Fix the source type or validate the value at its boundary.")
+}

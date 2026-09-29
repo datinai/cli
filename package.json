@@ -1,0 +1,28 @@
+{
+  "name": "datin-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "check": "bun run lint && bun run generate:check && bun run typecheck && bun run test",
+    "lint": "biome check --error-on-warnings .",
+    "format": "biome check --write .",
+    "hooks:install": "git config --local core.hooksPath .githooks",
+    "agents:embed": "bun run scripts/embed-agents.ts",
+    "skill:export": "bun run scripts/export-skill.ts",
+    "generate": "bun run --filter @datin/api-client generate && bun run agents:embed",
+    "generate:check": "bun run generate && git diff --exit-code packages/api-client/src/generated packages/cli/src/agents",
+    "spec:pull": "bun run scripts/pull-spec.ts",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test",
+    "build": "bun run --filter datin build",
+    "build:binary": "bun run scripts/build-binary.ts",
+    "datin": "bun packages/cli/src/bin.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.13",
+    "typescript": "^7.0.2"
+  }
+}

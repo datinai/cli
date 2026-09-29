@@ -1,0 +1,17 @@
+# Actions are pinned to commit SHAs and packages to the lockfile (some exactly); this keeps both moving.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    # A week's wait before proposing a release, so a compromised version has time to be caught and pulled.
+    cooldown:
+      default-days: 7
+    groups:
+      dependencies:
+        patterns: ["*"]

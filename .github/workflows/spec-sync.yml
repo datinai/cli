@@ -1,0 +1,45 @@
+name: spec-sync
+# The API publishes its OpenAPI spec at a public URL, so this repo follows it without any access to the
+# private backend: pull the live spec, regenerate the client, and open a pull request when anything changed.
+# A pull request opened with the workflow's own token does not start CI by itself: GitHub holds those runs for
+# approval. Approve them before merging; if the API added an error code, they fail until the CLI maps it to an
+# exit code. That is the point.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run spec:pull
+      - run: bun run generate
+      - name: Open a pull request if the spec or the client changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- openapi.json packages/api-client/src/generated; then
+            echo "The committed spec matches the live API."
+            exit 0
+          fi
+          branch="spec-sync/$(date -u +%Y-%m-%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add openapi.json packages/api-client/src/generated
+          git commit -m "Sync the OpenAPI spec and generated client with the live API"
+          git push --force origin "$branch"
+          gh pr view "$branch" >/dev/null 2>&1 || gh pr create --head "$branch" --title "Sync the API spec ($(date -u +%Y-%m-%d))" \
+            --body "The live API's OpenAPI spec differs from the one committed here. This updates \`openapi.json\` and regenerates the client in one commit. Approve the held CI runs before merging. If CI fails on the exit-code map, the API added an error code that the CLI has to handle."
