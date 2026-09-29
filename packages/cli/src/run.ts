@@ -10,6 +10,7 @@ import { registerModels } from "./commands/models.ts";
 import { registerOnboarding } from "./commands/onboarding.ts";
 import { registerProfile } from "./commands/profile.ts";
 import { registerRecs } from "./commands/recs.ts";
+import { registerSafety } from "./commands/safety.ts";
 import { registerSources } from "./commands/sources.ts";
 import { registerTelemetry } from "./commands/telemetry.ts";
 import type { Context, Deps } from "./context.ts";
@@ -149,6 +150,7 @@ export function createProgram(deps: Deps, state: RunState) {
   registerRecs(program, finish);
   registerSources(program, finish);
   registerFeedback(program, finish);
+  registerSafety(program, finish);
   registerAgent(program, finish);
   registerTelemetry(program, finish);
   registerModels(program, finish);

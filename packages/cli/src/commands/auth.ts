@@ -2,6 +2,7 @@ import { type Command, InvalidArgumentError } from "@commander-js/extra-typings"
 import { finishDeviceLogin, getMe, logout, type Me, startDeviceLogin } from "@datin/api-client";
 import type { Context } from "../context.ts";
 import { describe, type Finish } from "../define-command.ts";
+import { loginAccount } from "../lib/credentials/store.ts";
 import { apiErrors, authedErrors, type DatinError, localError } from "../lib/errors.ts";
 import { fromLocal } from "../lib/local.ts";
 import { clearLogoutData, logoutPaths, unfinishedLogoutWork } from "../lib/logout.ts";
@@ -23,7 +24,7 @@ interface LoggedIn {
   readonly stored_in: string;
 }
 
-const accountOf = (context: Context) => new URL(context.apiUrl).origin;
+const accountOf = (context: Context) => loginAccount(context.apiUrl);
 
 interface AlreadyLoggedIn {
   readonly logged_in: true;

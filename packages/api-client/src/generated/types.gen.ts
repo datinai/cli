@@ -341,6 +341,106 @@ export type OnboardingFacts = {
     }>;
 };
 
+export type AccountExportResponse = {
+    ok: true;
+    data: AccountExport;
+    /**
+     * One line a person or agent can repeat as-is
+     */
+    summary?: string;
+    next?: Array<NextCommand>;
+};
+
+/**
+ * Everything datin holds that you gave it or did. Other people appear only by id; ranking scores are left out because they are derived from both people's private sections
+ */
+export type AccountExport = {
+    exported_at: string;
+    account: {
+        id: string;
+        name: string;
+        email: string;
+        email_verified: boolean;
+        created_at: string;
+        linked: Array<{
+            provider: string;
+            linked_at: string;
+        }>;
+    };
+    sessions: Array<{
+        created_at: string;
+        expires_at: string;
+        user_agent: string | null;
+        ip_address: string | null;
+    }>;
+    profile: {
+        version: number;
+        status: string;
+        markdown: string;
+        agent_model: string | null;
+        updated_at: string;
+    } | null;
+    profile_versions: Array<{
+        version: number;
+        created_at: string;
+        fields: {
+            [key: string]: unknown;
+        };
+    }>;
+    contacts: Contacts;
+    consents: Array<{
+        action: string;
+        text_version: number;
+        granted_at: string;
+    }>;
+    sources: Array<{
+        source: string;
+        handle: string;
+        last_fetched_at: string;
+        items_fetched: number;
+    }>;
+    feedback: Array<{
+        id: string;
+        kind: string;
+        message: string;
+        created_at: string;
+    }>;
+    decisions: Array<{
+        person_id: string;
+        status: string;
+        reason: string | null;
+        shown_at: string | null;
+        decided_at: string | null;
+    }>;
+    matches: Array<{
+        person_id: string;
+        matched_at: string;
+    }>;
+    match_feedback: Array<{
+        person_id: string;
+        talked: boolean | null;
+        met: boolean | null;
+        wants_again: boolean | null;
+        updated_at: string;
+    }>;
+};
+
+export type DeleteAccountResponse = {
+    ok: true;
+    data: {
+        deleted: true;
+    };
+    /**
+     * One line a person or agent can repeat as-is
+     */
+    summary?: string;
+    next?: Array<NextCommand>;
+};
+
+export type DeleteAccountRequest = {
+    confirm: true;
+};
+
 export type TelemetryResponse = {
     ok: true;
     data: {
@@ -671,6 +771,40 @@ export type NewFeedback = {
     os?: string;
     agent?: string;
     agent_model?: string;
+};
+
+export type BlockResponse = {
+    ok: true;
+    data: {
+        blocked: true;
+    };
+    /**
+     * One line a person or agent can repeat as-is
+     */
+    summary?: string;
+    next?: Array<NextCommand>;
+};
+
+export type ReportResponse = {
+    ok: true;
+    data: Report;
+    /**
+     * One line a person or agent can repeat as-is
+     */
+    summary?: string;
+    next?: Array<NextCommand>;
+};
+
+export type Report = {
+    report_id: string;
+    blocked: true;
+};
+
+export type ReportRequest = {
+    /**
+     * What happened, in the user's words
+     */
+    description: string;
 };
 
 export type WebConfigResponse = {
@@ -1558,6 +1692,128 @@ export type GetOnboardingFactsResponses = {
 
 export type GetOnboardingFactsResponse = GetOnboardingFactsResponses[keyof GetOnboardingFactsResponses];
 
+export type ExportAccountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/account/export';
+};
+
+export type ExportAccountErrors = {
+    /**
+     * A login that is still pending or has expired
+     */
+    400: ErrorEnvelope;
+    /**
+     * Not logged in, or the token is no longer valid
+     */
+    401: ErrorEnvelope;
+    /**
+     * The account is disabled
+     */
+    403: ErrorEnvelope;
+    /**
+     * Not found
+     */
+    404: ErrorEnvelope;
+    /**
+     * The resource changed since it was read, or a connected account has to be connected again
+     */
+    409: ErrorEnvelope;
+    /**
+     * The request did not pass validation
+     */
+    422: ErrorEnvelope;
+    /**
+     * The user has not agreed to this step yet
+     */
+    428: ErrorEnvelope;
+    /**
+     * Too many requests
+     */
+    429: ErrorEnvelope;
+    /**
+     * Unexpected failure
+     */
+    500: ErrorEnvelope;
+    /**
+     * This data source is switched off
+     */
+    503: ErrorEnvelope;
+};
+
+export type ExportAccountError = ExportAccountErrors[keyof ExportAccountErrors];
+
+export type ExportAccountResponses = {
+    /**
+     * The export
+     */
+    200: AccountExportResponse;
+};
+
+export type ExportAccountResponse = ExportAccountResponses[keyof ExportAccountResponses];
+
+export type DeleteAccountData = {
+    body: DeleteAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/account';
+};
+
+export type DeleteAccountErrors = {
+    /**
+     * A login that is still pending or has expired
+     */
+    400: ErrorEnvelope;
+    /**
+     * Not logged in, or the token is no longer valid
+     */
+    401: ErrorEnvelope;
+    /**
+     * The account is disabled
+     */
+    403: ErrorEnvelope;
+    /**
+     * Not found
+     */
+    404: ErrorEnvelope;
+    /**
+     * The resource changed since it was read, or a connected account has to be connected again
+     */
+    409: ErrorEnvelope;
+    /**
+     * The request did not pass validation
+     */
+    422: ErrorEnvelope;
+    /**
+     * The user has not agreed to this step yet
+     */
+    428: ErrorEnvelope;
+    /**
+     * Too many requests
+     */
+    429: ErrorEnvelope;
+    /**
+     * Unexpected failure
+     */
+    500: ErrorEnvelope;
+    /**
+     * This data source is switched off
+     */
+    503: ErrorEnvelope;
+};
+
+export type DeleteAccountError = DeleteAccountErrors[keyof DeleteAccountErrors];
+
+export type DeleteAccountResponses = {
+    /**
+     * Deleted
+     */
+    200: DeleteAccountResponse;
+};
+
+export type DeleteAccountResponse2 = DeleteAccountResponses[keyof DeleteAccountResponses];
+
 export type SendTelemetryData = {
     body: TelemetryEvent;
     path?: never;
@@ -2248,6 +2504,138 @@ export type CreateFeedbackResponses = {
 };
 
 export type CreateFeedbackResponse2 = CreateFeedbackResponses[keyof CreateFeedbackResponses];
+
+export type BlockPersonData = {
+    body?: never;
+    path: {
+        /**
+         * candidate_id of someone you were shown or matched with
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/people/{id}/block';
+};
+
+export type BlockPersonErrors = {
+    /**
+     * A login that is still pending or has expired
+     */
+    400: ErrorEnvelope;
+    /**
+     * Not logged in, or the token is no longer valid
+     */
+    401: ErrorEnvelope;
+    /**
+     * The account is disabled
+     */
+    403: ErrorEnvelope;
+    /**
+     * Not found
+     */
+    404: ErrorEnvelope;
+    /**
+     * The resource changed since it was read, or a connected account has to be connected again
+     */
+    409: ErrorEnvelope;
+    /**
+     * The request did not pass validation
+     */
+    422: ErrorEnvelope;
+    /**
+     * The user has not agreed to this step yet
+     */
+    428: ErrorEnvelope;
+    /**
+     * Too many requests
+     */
+    429: ErrorEnvelope;
+    /**
+     * Unexpected failure
+     */
+    500: ErrorEnvelope;
+    /**
+     * This data source is switched off
+     */
+    503: ErrorEnvelope;
+};
+
+export type BlockPersonError = BlockPersonErrors[keyof BlockPersonErrors];
+
+export type BlockPersonResponses = {
+    /**
+     * Blocked
+     */
+    200: BlockResponse;
+};
+
+export type BlockPersonResponse = BlockPersonResponses[keyof BlockPersonResponses];
+
+export type ReportPersonData = {
+    body: ReportRequest;
+    path: {
+        /**
+         * candidate_id of someone you were shown or matched with
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/people/{id}/report';
+};
+
+export type ReportPersonErrors = {
+    /**
+     * A login that is still pending or has expired
+     */
+    400: ErrorEnvelope;
+    /**
+     * Not logged in, or the token is no longer valid
+     */
+    401: ErrorEnvelope;
+    /**
+     * The account is disabled
+     */
+    403: ErrorEnvelope;
+    /**
+     * Not found
+     */
+    404: ErrorEnvelope;
+    /**
+     * The resource changed since it was read, or a connected account has to be connected again
+     */
+    409: ErrorEnvelope;
+    /**
+     * The request did not pass validation
+     */
+    422: ErrorEnvelope;
+    /**
+     * The user has not agreed to this step yet
+     */
+    428: ErrorEnvelope;
+    /**
+     * Too many requests
+     */
+    429: ErrorEnvelope;
+    /**
+     * Unexpected failure
+     */
+    500: ErrorEnvelope;
+    /**
+     * This data source is switched off
+     */
+    503: ErrorEnvelope;
+};
+
+export type ReportPersonError = ReportPersonErrors[keyof ReportPersonErrors];
+
+export type ReportPersonResponses = {
+    /**
+     * Reported and blocked
+     */
+    200: ReportResponse;
+};
+
+export type ReportPersonResponse = ReportPersonResponses[keyof ReportPersonResponses];
 
 export type GetWebConfigData = {
     body?: never;

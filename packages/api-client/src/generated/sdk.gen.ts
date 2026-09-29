@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AcknowledgeUpdatesData, AcknowledgeUpdatesErrors, AcknowledgeUpdatesResponses, CheckModelData, CheckModelErrors, CheckModelResponses, CheckUpdatesData, CheckUpdatesErrors, CheckUpdatesResponses, CreateFeedbackData, CreateFeedbackErrors, CreateFeedbackResponses, FetchXPostsData, FetchXPostsErrors, FetchXPostsResponses, FinishDeviceLoginData, FinishDeviceLoginErrors, FinishDeviceLoginResponses, GetContactsData, GetContactsErrors, GetContactsResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetMeData, GetMeErrors, GetMeResponses, GetModelsData, GetModelsErrors, GetModelsResponses, GetOnboardingFactsData, GetOnboardingFactsErrors, GetOnboardingFactsResponses, GetProfileData, GetProfileErrors, GetProfileResponses, GetProfileTemplateData, GetProfileTemplateErrors, GetProfileTemplateResponses, GetWebConfigData, GetWebConfigErrors, GetWebConfigResponses, LikeRecData, LikeRecErrors, LikeRecResponses, ListMatchesData, ListMatchesErrors, ListMatchesResponses, ListRecsData, ListRecsErrors, ListRecsResponses, ListSourcesData, ListSourcesErrors, ListSourcesResponses, LogoutData, LogoutErrors, LogoutResponses, PassRecData, PassRecErrors, PassRecResponses, SaveContactsData, SaveContactsErrors, SaveContactsResponses, SaveMatchFeedbackData, SaveMatchFeedbackErrors, SaveMatchFeedbackResponses, SaveProfileData, SaveProfileErrors, SaveProfileResponses, SendTelemetryData, SendTelemetryErrors, SendTelemetryResponses, StartDeviceLoginData, StartDeviceLoginErrors, StartDeviceLoginResponses, SuggestLocationData, SuggestLocationErrors, SuggestLocationResponses } from './types.gen';
+import type { AcknowledgeUpdatesData, AcknowledgeUpdatesErrors, AcknowledgeUpdatesResponses, BlockPersonData, BlockPersonErrors, BlockPersonResponses, CheckModelData, CheckModelErrors, CheckModelResponses, CheckUpdatesData, CheckUpdatesErrors, CheckUpdatesResponses, CreateFeedbackData, CreateFeedbackErrors, CreateFeedbackResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, ExportAccountData, ExportAccountErrors, ExportAccountResponses, FetchXPostsData, FetchXPostsErrors, FetchXPostsResponses, FinishDeviceLoginData, FinishDeviceLoginErrors, FinishDeviceLoginResponses, GetContactsData, GetContactsErrors, GetContactsResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetMeData, GetMeErrors, GetMeResponses, GetModelsData, GetModelsErrors, GetModelsResponses, GetOnboardingFactsData, GetOnboardingFactsErrors, GetOnboardingFactsResponses, GetProfileData, GetProfileErrors, GetProfileResponses, GetProfileTemplateData, GetProfileTemplateErrors, GetProfileTemplateResponses, GetWebConfigData, GetWebConfigErrors, GetWebConfigResponses, LikeRecData, LikeRecErrors, LikeRecResponses, ListMatchesData, ListMatchesErrors, ListMatchesResponses, ListRecsData, ListRecsErrors, ListRecsResponses, ListSourcesData, ListSourcesErrors, ListSourcesResponses, LogoutData, LogoutErrors, LogoutResponses, PassRecData, PassRecErrors, PassRecResponses, ReportPersonData, ReportPersonErrors, ReportPersonResponses, SaveContactsData, SaveContactsErrors, SaveContactsResponses, SaveMatchFeedbackData, SaveMatchFeedbackErrors, SaveMatchFeedbackResponses, SaveProfileData, SaveProfileErrors, SaveProfileResponses, SendTelemetryData, SendTelemetryErrors, SendTelemetryResponses, StartDeviceLoginData, StartDeviceLoginErrors, StartDeviceLoginResponses, SuggestLocationData, SuggestLocationErrors, SuggestLocationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -136,6 +136,28 @@ export const getOnboardingFacts = <ThrowOnError extends boolean = false>(options
 });
 
 /**
+ * A copy of everything datin holds about you
+ */
+export const exportAccount = <ThrowOnError extends boolean = false>(options?: Options<ExportAccountData, ThrowOnError>): RequestResult<ExportAccountResponses, ExportAccountErrors, ThrowOnError> => (options?.client ?? client).get<ExportAccountResponses, ExportAccountErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/account/export',
+    ...options
+});
+
+/**
+ * Delete your account and everything tied to it. There is no undo
+ */
+export const deleteAccount = <ThrowOnError extends boolean = false>(options: Options<DeleteAccountData, ThrowOnError>): RequestResult<DeleteAccountResponses, DeleteAccountErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAccountResponses, DeleteAccountErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/account',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Anonymous CLI usage event. Opt out with DATIN_TELEMETRY_DISABLED=1, DO_NOT_TRACK=1 or `datin telemetry disable`
  */
 export const sendTelemetry = <ThrowOnError extends boolean = false>(options: Options<SendTelemetryData, ThrowOnError>): RequestResult<SendTelemetryResponses, SendTelemetryErrors, ThrowOnError> => (options.client ?? client).post<SendTelemetryResponses, SendTelemetryErrors, ThrowOnError>({
@@ -246,6 +268,28 @@ export const saveMatchFeedback = <ThrowOnError extends boolean = false>(options:
 export const createFeedback = <ThrowOnError extends boolean = false>(options: Options<CreateFeedbackData, ThrowOnError>): RequestResult<CreateFeedbackResponses, CreateFeedbackErrors, ThrowOnError> => (options.client ?? client).post<CreateFeedbackResponses, CreateFeedbackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/feedback',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Stop seeing someone, and stop them seeing you. Ends a match between you
+ */
+export const blockPerson = <ThrowOnError extends boolean = false>(options: Options<BlockPersonData, ThrowOnError>): RequestResult<BlockPersonResponses, BlockPersonErrors, ThrowOnError> => (options.client ?? client).post<BlockPersonResponses, BlockPersonErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/people/{id}/block',
+    ...options
+});
+
+/**
+ * Tell the datin team about someone. Also blocks them
+ */
+export const reportPerson = <ThrowOnError extends boolean = false>(options: Options<ReportPersonData, ThrowOnError>): RequestResult<ReportPersonResponses, ReportPersonErrors, ThrowOnError> => (options.client ?? client).post<ReportPersonResponses, ReportPersonErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/people/{id}/report',
     ...options,
     headers: {
         'Content-Type': 'application/json',
