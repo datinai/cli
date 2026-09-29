@@ -7,6 +7,9 @@ import { readPrivateJson, removeFile, writePrivateJson } from "../private-file.t
  * No OS keychain, so logging in never raises a system prompt about passwords. One token per API origin,
  * so a local or staging API never sees the production token.
  */
+/** Logins are stored per API origin, so a local or staging API never sees another's token. */
+export const loginAccount = (apiUrl: string) => new URL(apiUrl).origin;
+
 export interface CredentialStore {
   /** The file, for `auth status` and for anyone wondering where their login is. */
   readonly path: string;
