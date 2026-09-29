@@ -18,10 +18,10 @@ If your context states the exact model of this chat (for example `gpt-6-luna`), 
 
 Choose in this order:
 
-1. **Desktop app automations**: they run on this machine while the app is open and see the local login. Create one that runs every 3 hours with the prompt "Run datin check --json and follow the datin skill recurring-check instructions". Automations made on the web run in the cloud and cannot reach the CLI: do not use those.
-2. **A launchd/cron job** running `codex exec --skip-git-repo-check -s workspace-write -c sandbox_workspace_write.network_access=true -o ~/.datin/last-check.txt "Run datin check --json and follow the datin skill recurring-check instructions"`.
+1. **Desktop app automations**: they run on this machine while the app is open and see the local login. Create one that runs every 3 hours with the prompt "Run DATIN_UNATTENDED=1 datin check --json and follow the datin skill recurring-check instructions". Automations made on the web run in the cloud and cannot reach the CLI: do not use those.
+2. **A launchd/cron job** running `DATIN_UNATTENDED=1 codex exec --skip-git-repo-check -s workspace-write -c sandbox_workspace_write.network_access=true -o ~/.datin/last-check.txt "Run datin check --json and follow the datin skill recurring-check instructions"`.
 
-Never use `--dangerously-bypass-approvals-and-sandbox` or `-s danger-full-access` for unattended runs.
+Never use `--dangerously-bypass-approvals-and-sandbox` or `-s danger-full-access` for unattended runs. Codex has no per-command allow rule, so `DATIN_UNATTENDED=1` is what keeps an unattended run to `datin check` and status commands.
 
 After the job exists, run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
 

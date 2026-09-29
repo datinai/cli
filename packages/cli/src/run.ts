@@ -13,6 +13,7 @@ import { registerRecs } from "./commands/recs.ts";
 import { registerSafety } from "./commands/safety.ts";
 import { registerSources } from "./commands/sources.ts";
 import { registerTelemetry } from "./commands/telemetry.ts";
+import { registerTerms } from "./commands/terms.ts";
 import type { Context, Deps } from "./context.ts";
 import type { Finish } from "./define-command.ts";
 import { createApi, createRawClient, DEFAULT_API_URL } from "./lib/api.ts";
@@ -37,6 +38,26 @@ export interface RunState {
 }
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/**
+ * What an unattended run (a scheduled check, `DATIN_UNATTENDED=1`) may do: read updates, acknowledge them, and
+ * look at its own status. Other people's card text reaches that run, so anything that likes, passes, blocks,
+ * edits or deletes is refused before a request is made, whatever the text asks for.
+ */
+const UNATTENDED_COMMANDS = new Set([
+  "check",
+  "onboarding status",
+  "whoami",
+  "auth status",
+  "doctor",
+  "commands",
+  "agent instructions",
+]);
+
+const unattended = (env: Readonly<Record<string, string | undefined>>) => {
+  const value = env.DATIN_UNATTENDED?.trim().toLowerCase();
+  return value !== undefined && value !== "" && value !== "0" && value !== "false";
+};
 
 /** A full URL, over https unless it is this machine: the login token must never cross a network in the clear. */
 function apiUrl(value: string): string {
@@ -107,7 +128,16 @@ export function createProgram(deps: Deps, state: RunState) {
               }),
         ),
     };
-    const result = await handler(context);
+    const command = state.ran?.command ?? "";
+    const result =
+      unattended(deps.env) && !UNATTENDED_COMMANDS.has(command)
+        ? await errAsync<never, DatinError>(
+            localError("unattended_refused", `\`datin ${command}\` is not allowed in an unattended run`, {
+              hint: "DATIN_UNATTENDED is set, so only `datin check`, `datin check --ack` and status commands run. Ask the user in a live session instead",
+              details: { command, allowed: [...UNATTENDED_COMMANDS] },
+            }),
+          )
+        : await handler(context);
     result.match(
       (value) => output.success(value, render),
       (error) => {
@@ -151,6 +181,7 @@ export function createProgram(deps: Deps, state: RunState) {
   registerSources(program, finish);
   registerFeedback(program, finish);
   registerSafety(program, finish);
+  registerTerms(program, finish);
   registerAgent(program, finish);
   registerTelemetry(program, finish);
   registerModels(program, finish);

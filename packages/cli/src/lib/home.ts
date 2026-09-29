@@ -9,6 +9,8 @@ type Env = Readonly<Record<string, string | undefined>>;
 /** `~/.datin` (or `$DATIN_HOME`): the working copy of datin.md and what the CLI remembers about it. */
 export const datinHome = (env: Env) => env.DATIN_HOME || join(homedir(), ".datin");
 export const profilePath = (env: Env) => join(datinHome(env), "datin.md");
+/** Where `profile pull --keep-local` puts the local draft before the server's text replaces it. */
+export const localCopyPath = (env: Env) => join(datinHome(env), "datin.local.md");
 export const statePath = (env: Env) => join(datinHome(env), "state.json");
 
 export interface LocalState {

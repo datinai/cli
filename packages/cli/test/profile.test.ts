@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { SaveProfile } from "@datin/api-client";
@@ -150,6 +150,26 @@ describe("profile sync", () => {
 
     expect((await datin(["profile", "pull", "--yes"], api.respond, { env })).exitCode).toBe(0);
     expect(readFileSync(fileOf(env), "utf8")).not.toContain("edited locally");
+  });
+
+  test("pull --keep-local saves the unpushed draft byte for byte, then writes the saved profile", async () => {
+    const env = machine();
+    const api = fakeApi();
+    writeFileSync(fileOf(await ensureHome(env)), "## name\n\nAda\n\n## about\n\nhello\n");
+    await datin(["profile", "push"], api.respond, { env });
+    const draft = "## name\n\nAda\n\n## about\n\nhello, edited locally — with a tab\there\r\n";
+    writeFileSync(fileOf(env), draft);
+    api.state.markdown = "## name\n\nAda\n\n## about\n\nhello from the website\n";
+    api.state.version = 2;
+
+    const pulled = await datin(["profile", "pull", "--keep-local"], api.respond, { env });
+    expect(pulled.exitCode).toBe(0);
+    const { data } = JSON.parse(pulled.stdout);
+    const copy = join(env.DATIN_HOME, "datin.local.md");
+    expect(data).toMatchObject({ path: fileOf(env), version: 2, local_copy: copy });
+    expect(readFileSync(copy, "utf8")).toBe(draft);
+    expect(statSync(copy).mode & 0o777).toBe(0o600);
+    expect(readFileSync(fileOf(env), "utf8")).toContain("hello from the website");
   });
 });
 

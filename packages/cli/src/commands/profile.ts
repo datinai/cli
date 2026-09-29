@@ -5,6 +5,7 @@ import { describe, type Finish } from "../define-command.ts";
 import { apiErrors, authedErrors, type DatinError, localError } from "../lib/errors.ts";
 import {
   hashOf,
+  localCopyPath,
   profilePath,
   readProfileFile,
   readState,
@@ -14,6 +15,7 @@ import {
 } from "../lib/home.ts";
 import { fromLocal } from "../lib/local.ts";
 import { readEvidenceSnapshot } from "../lib/local-sources.ts";
+import { writePrivateFile } from "../lib/private-file.ts";
 import { err, ok } from "../lib/result.ts";
 
 const safe = <T>(promise: Promise<T>) => fromLocal(promise, "read or write the local datin.md");
@@ -83,6 +85,7 @@ export function registerProfile(program: Command, finish: Finish): void {
       .command("pull")
       .description("Write the saved profile to ~/.datin/datin.md")
       .option("--yes", "overwrite local edits that were never pushed")
+      .option("--keep-local", "first save the local datin.md, byte for byte, to ~/.datin/datin.local.md")
       .action((options) =>
         finish((context) =>
           serverProfile(context).andThen(({ data }) =>
@@ -90,15 +93,19 @@ export function registerProfile(program: Command, finish: Finish): void {
               ([local, state]) => {
                 const unpushedEdits =
                   local !== undefined && local !== data.markdown && hashOf(local) !== state.syncedHash;
-                if (unpushedEdits && !options.yes) {
+                if (unpushedEdits && !options.yes && !options.keepLocal) {
                   return err(
                     localError(
                       "confirmation_required",
                       "The local datin.md has edits that were never pushed; pulling would overwrite them",
                       {
-                        hint: "Look at `datin profile diff` first. Pass --yes to overwrite",
+                        hint: "Look at `datin profile diff` first. Pass --keep-local to save the local copy first, or --yes to overwrite",
                         next: [
                           { command: "datin profile diff" },
+                          {
+                            command: "datin profile pull --keep-local",
+                            when: "to merge the local edits with the saved profile",
+                          },
                           {
                             command: "datin profile pull --yes",
                             when: "only if the user agrees to lose the local edits",
@@ -108,13 +115,19 @@ export function registerProfile(program: Command, finish: Finish): void {
                     ),
                   );
                 }
+                const kept = options.keepLocal && local !== undefined ? localCopyPath(context.deps.env) : undefined;
                 return safe(
                   (async () => {
+                    // The copy goes first: if writing it fails, the draft is still untouched in datin.md.
+                    if (kept && local !== undefined) await writePrivateFile(kept, local);
                     await writeProfileFile(context.deps.env, data.markdown);
                     await updateState(context.deps.env, { version: data.version, syncedHash: hashOf(data.markdown) });
+                    const path = profilePath(context.deps.env);
                     return {
-                      data: { path: profilePath(context.deps.env), version: data.version },
-                      summary: `Wrote version ${data.version} to ${profilePath(context.deps.env)}`,
+                      data: { path, version: data.version, ...(kept && { local_copy: kept }) },
+                      summary: kept
+                        ? `Saved the local draft to ${kept} and wrote version ${data.version} to ${path}`
+                        : `Wrote version ${data.version} to ${path}`,
                     };
                   })(),
                 );
@@ -124,7 +137,7 @@ export function registerProfile(program: Command, finish: Finish): void {
         ),
       ),
     {
-      examples: ["datin profile pull"],
+      examples: ["datin profile pull", "datin profile pull --keep-local"],
       errors: [...authedErrors, "not_found", "confirmation_required"],
       destructive: true,
     },

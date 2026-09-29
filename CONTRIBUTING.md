@@ -23,10 +23,13 @@ Please discuss changes with the maintainers before opening a pull request. Keep 
   | 11 | `source_disabled` |
   | 12 | `reconnect_required` |
   | 13 | `local_state_error` |
+  | 14 | `update_required` |
+  | 15 | `unattended_refused` |
 
 - **Two carve-outs.** `--help`, and `datin` with nothing after it, print plain help text on stdout and exit 0.
 - **Asks before it looks.** Reading a local data source (`sources detect`, `sources prompt`) is refused with `consent_required` until `datin sources consent <id> --granted` recorded the user's yes; the refusal carries the what, why and where-it-goes text to say to them.
 - **Never prompts.** Missing input fails with the exact flags to pass.
+- **Unattended runs stay read-only.** With `DATIN_UNATTENDED=1` (scheduled checks set it), every command except `check`, `check --ack` and the status commands (`onboarding status`, `whoami`, `auth status`, `doctor`, `commands`, `agent instructions`) is refused with `unattended_refused` before any request, so text on someone else's card can't make an unattended agent like, pass, block or edit.
 - **Logout clears local Datin data.** `datin logout` revokes the current token and clears the local profile, evidence, source consents, onboarding state and pending sign-in. It returns `confirmation_required` before acting if there is unfinished local work; `datin logout --yes` discards it. Evidence and unpushed drafts cannot be restored by login. A fully synced profile with completed sources logs out directly. The saved server profile/account, telemetry preferences, unrelated files and credentials for other API origins remain. External scheduler jobs are not removed by clearing their local onboarding marker.
 - **Login in a private file.** The token lives in `$XDG_CONFIG_HOME/datin/credentials.json` (default `~/.config/datin/`), directory `0700`, file `0600`, one token per API origin: the same approach as Wrangler, Codex and Convex. No OS keychain, so no system prompt. `--token` and `DATIN_TOKEN` take precedence and never read the file.
 - **Describes itself.** `datin commands --json` lists commands, examples, expected errors and `global_options`. Options include defaults and choices, whether the option itself is `required`, and whether its value is `value_required` or `value_optional`. Every command documents parser and unexpected failures alongside its handler's expected errors.

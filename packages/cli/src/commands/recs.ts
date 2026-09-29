@@ -23,9 +23,8 @@ function renderCard(
   card: Omit<Card, "score" | "reasons" | "judge"> & Partial<Pick<Card, "score" | "reasons" | "judge">>,
 ): string {
   const why = card.reasons && card.reasons.length > 0 ? `why: ${card.reasons.join("; ")}` : undefined;
-  const judge = card.judge
-    ? `judge: mutual ${Math.round(card.judge.mutual * 100)}%, you ${Math.round(card.judge.viewer_likes * 100)}% / them ${Math.round(card.judge.candidate_likes * 100)}%`
-    : undefined;
+  // Only the user's side: datin doesn't share how the other person's private sections score the user.
+  const judge = card.judge ? `judge: you ${Math.round(card.judge.viewer_likes * 100)}%` : undefined;
   return [
     `${card.name}, ${card.age} · ${card.city}, ${card.country} · ${card.languages.join(", ")}`,
     "",

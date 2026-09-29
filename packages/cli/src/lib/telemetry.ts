@@ -17,7 +17,7 @@ interface TelemetryConfig {
 }
 
 /** Bump when the notice starts covering something new. 1 had no onboarding progress. */
-const NOTICE_VERSION = 2;
+const NOTICE_VERSION = 3;
 
 const configPath = (env: Env) => join(configDir(env), "telemetry.json");
 
@@ -72,7 +72,7 @@ export interface CommandRun {
 }
 
 const NOTICE =
-  "datin collects anonymous usage data (command names, flag names, error codes and onboarding progress; never flag values, account identity or profile content).\n" +
+  "datin collects anonymous usage data: a random install ID, command and flag names, whether the command worked (and its error code), how long it took, onboarding progress, and the datin, OS and Node versions. Never flag values, account identity or profile content.\n" +
   "Turn it off with `datin telemetry disable`, DATIN_TELEMETRY_DISABLED=1 or DO_NOT_TRACK=1.\n";
 
 async function onboardingAttempt(env: Env): Promise<string> {

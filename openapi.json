@@ -142,6 +142,7 @@
           "consent_required",
           "source_disabled",
           "reconnect_required",
+          "update_required",
           "internal_error"
         ]
       },
@@ -1581,6 +1582,120 @@
           "recommendations"
         ]
       },
+      "TermsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Terms"
+          },
+          "summary": {
+            "type": "string",
+            "description": "One line a person or agent can repeat as-is"
+          },
+          "next": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NextCommand"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "data"
+        ]
+      },
+      "Terms": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "description": "Accept exactly this version"
+          },
+          "urls": {
+            "type": "object",
+            "properties": {
+              "terms": {
+                "type": "string"
+              },
+              "privacy": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "terms",
+              "privacy"
+            ]
+          }
+        },
+        "required": [
+          "version",
+          "urls"
+        ]
+      },
+      "AcceptTermsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TermsAccepted"
+          },
+          "summary": {
+            "type": "string",
+            "description": "One line a person or agent can repeat as-is"
+          },
+          "next": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NextCommand"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "data"
+        ]
+      },
+      "TermsAccepted": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accepted",
+          "version"
+        ]
+      },
+      "AcceptTermsRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
       "SourcesResponse": {
         "type": "object",
         "properties": {
@@ -1829,9 +1944,11 @@
               "enum": [
                 "evaluation_budget",
                 "judge_unavailable",
-                "selection_changed"
+                "selection_changed",
+                "daily_limit"
               ]
-            }
+            },
+            "description": "`daily_limit`: no new cards until tomorrow; the cards already held still show"
           },
           "algorithm": {
             "type": "string",
@@ -1869,7 +1986,7 @@
                 "items": {
                   "type": "string"
                 },
-                "description": "Facts behind the score, e.g. `both in Tbilisi`, `life goals: clearly aligned`"
+                "description": "Facts behind the score, e.g. `both in Tbilisi`, `shared ground: a fair amount`"
               },
               "judge": {
                 "$ref": "#/components/schemas/JudgeSummary"
@@ -1892,34 +2009,14 @@
             "type": "number",
             "description": "Probability the user would want to meet them, 0 to 1"
           },
-          "candidate_likes": {
-            "type": "number",
-            "description": "Probability they would want to meet the user, 0 to 1"
-          },
-          "mutual": {
-            "type": "number",
-            "description": "Harmonic mean of the two, less any dealbreaker hit, 0 to 1"
-          },
-          "dealbreaker": {
-            "type": "number",
-            "description": "Probability one side's dealbreakers apply to the other, 0 to 1"
-          },
-          "life_goals": {
-            "type": "number",
-            "description": "Alignment of what each wants from a relationship, 0 to 3"
-          },
           "shared_ground": {
             "type": "number",
-            "description": "How much they would enjoy time together, 0 to 3"
+            "description": "How much their `about` and `interests` suggest they would enjoy time together, 0 to 3"
           }
         },
         "required": [
           "model",
           "viewer_likes",
-          "candidate_likes",
-          "mutual",
-          "dealbreaker",
-          "life_goals",
           "shared_ground"
         ],
         "description": "Present when the judge ranked this pair"
@@ -2600,6 +2697,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -2713,6 +2820,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -2877,6 +2994,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -3003,6 +3130,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -3116,6 +3253,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -3264,6 +3411,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -3382,6 +3539,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -3511,6 +3678,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -3629,6 +3806,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -3771,6 +3958,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -3889,6 +4086,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -4023,6 +4230,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -4172,6 +4389,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -4298,6 +4525,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -4416,6 +4653,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -4560,6 +4807,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -4691,6 +4948,293 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "The user has not agreed to this step yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This data source is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms": {
+      "get": {
+        "operationId": "getTerms",
+        "tags": [
+          "account"
+        ],
+        "summary": "The current version of datin's terms and privacy policy, and where to read them",
+        "responses": {
+          "200": {
+            "description": "The current terms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TermsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A login that is still pending or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not logged in, or the token is no longer valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The account is disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The resource changed since it was read, or a connected account has to be connected again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "The user has not agreed to this step yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This data source is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms/accept": {
+      "post": {
+        "operationId": "acceptTerms",
+        "tags": [
+          "account"
+        ],
+        "summary": "Record the user's yes to the current terms and privacy policy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptTermsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptTermsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A login that is still pending or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not logged in, or the token is no longer valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The account is disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The resource changed since it was read, or a connected account has to be connected again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -4804,6 +5348,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -4954,6 +5508,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -5072,6 +5636,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -5211,6 +5785,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -5368,6 +5952,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -5494,6 +6088,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -5612,6 +6216,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -5762,6 +6376,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -5937,6 +6561,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -6065,6 +6699,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -6204,6 +6848,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {
@@ -6361,6 +7015,16 @@
               }
             }
           },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "428": {
             "description": "The user has not agreed to this step yet",
             "content": {
@@ -6474,6 +7138,16 @@
           },
           "422": {
             "description": "The request did not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "This datin CLI is too old; update it and run the command again",
             "content": {
               "application/json": {
                 "schema": {

@@ -1,5 +1,15 @@
 import type { NextCommand } from "@datin/api-client";
-import type { DatinError } from "./errors.ts";
+import { type DatinError, dailyLimitOf } from "./errors.ts";
+
+/** "3 h 12 min", "4 min", "20 s": precise enough to plan around, never a raw second count. */
+function formatWait(seconds: number): string {
+  if (seconds < 60) return `${Math.ceil(seconds)} s`;
+  const minutes = Math.ceil(seconds / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
 
 export interface Writer {
   write(text: string): void;
@@ -106,6 +116,12 @@ export class Output {
       return;
     }
     this.stderr.write(forTerminal(`error: ${error.message} [${error.code}]\n`));
+    const limit = dailyLimitOf(error);
+    if (limit) {
+      const wait = error.details?.retry_after_seconds;
+      const again = typeof wait === "number" ? `, try again in ${formatWait(wait)}` : "";
+      this.stderr.write(forTerminal(`limit: daily ${limit.replace("_", " ")}${again}\n`));
+    }
     if (error.hint) this.stderr.write(forTerminal(`hint: ${error.hint}\n`));
     for (const step of next ?? [])
       this.stderr.write(forTerminal(`next: ${step.command}${step.when ? `  (${step.when})` : ""}\n`));

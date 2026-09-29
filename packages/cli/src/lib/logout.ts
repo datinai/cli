@@ -1,6 +1,6 @@
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
-import { datinHome, hashOf, profilePath, readProfileFile, readState, statePath } from "./home.ts";
+import { datinHome, hashOf, localCopyPath, profilePath, readProfileFile, readState, statePath } from "./home.ts";
 import { evidenceDir, readDecisions, readEvidenceSnapshot, sourceStatePath } from "./local-sources.ts";
 import { pendingLogin, pendingLoginPath } from "./pending-login.ts";
 import { removeFile } from "./private-file.ts";
@@ -16,6 +16,7 @@ export function logoutPaths(env: Readonly<Record<string, string | undefined>>) {
   return {
     files: [
       profilePath(env),
+      localCopyPath(env),
       statePath(env),
       sourceStatePath(env),
       pendingLoginPath(env),

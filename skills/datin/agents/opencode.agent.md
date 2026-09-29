@@ -12,7 +12,7 @@ OpenCode does not show you the model or effort of this chat, and its config file
 
 ## The recurring check
 
-OpenCode has no scheduler. Offer a launchd/cron job that runs `opencode run "Run datin check --json and follow the datin skill recurring-check instructions"` every 3 hours, with `bunx datin *` allowed in `opencode.json` permissions so the run does not stall on a prompt. Do not use `--auto` for it: that approves everything not explicitly denied. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
+OpenCode has no scheduler. Offer a launchd/cron job that runs `DATIN_UNATTENDED=1 opencode run "Run datin check --json and follow the datin skill recurring-check instructions"` every 3 hours, with only `bunx datin check *` allowed in `opencode.json` permissions so the run does not stall on a prompt. Do not use `--auto` for it: that approves everything not explicitly denied. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
 
 ## Reading your own history
 

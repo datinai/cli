@@ -16,9 +16,11 @@ Your system prompt states the exact model of this chat ("The exact model ID is â
 
 Choose in this order:
 
-1. **Desktop app scheduled tasks** (Claude Code desktop): they run on this machine, survive restarts, and see the local login. Create one that runs every 3 hours with the prompt "Run datin check --json and follow the datin skill recurring-check instructions".
+1. **Desktop app scheduled tasks** (Claude Code desktop): they run on this machine, survive restarts, and see the local login. Create one that runs every 3 hours with the prompt "Run DATIN_UNATTENDED=1 datin check --json and follow the datin skill recurring-check instructions".
 2. **`/loop 3h`** in a CLI session: fine while the session lives, but it ends with the session and expires after 7 days. Tell the user that.
-3. **A launchd/cron job** that runs `claude -p "Run datin check --json and follow the datin skill recurring-check instructions" --permission-mode dontAsk --allowedTools "Bash(bunx datin:*),Bash(datin:*)" --output-format json`.
+3. **A launchd/cron job** that runs `DATIN_UNATTENDED=1 claude -p "Run datin check --json and follow the datin skill recurring-check instructions" --permission-mode dontAsk --allowedTools "Bash(bunx datin check:*),Bash(datin check:*)" --output-format json`.
+
+In an unattended run, `DATIN_UNATTENDED=1` makes the CLI refuse everything but `check` and status commands, and the allow rule covers only `datin check`.
 
 Never use cloud routines (`/schedule`): they run on Anthropic's servers, which cannot see this machine, the CLI or its login. Never use `--dangerously-skip-permissions` for unattended runs.
 
