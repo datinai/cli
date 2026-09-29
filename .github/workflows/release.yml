@@ -144,15 +144,14 @@ jobs:
       - name: Publish the verified tarball
         if: steps.registry.outputs.published != 'true'
         # npm supports OIDC; Bun owns dependency installation, builds and packing. Trusted publishing needs
-        # npm 11.5.1 or later. Provenance stays off while this repository is private (npm requires a public
-        # source repository for it); turn it on when the repository goes public.
+        # npm 11.5.1 or later. Provenance links the published package to this commit and workflow run.
         run: |
           node --input-type=module -e "
             const [major, minor, patch] = process.argv[1].split('.').map(Number);
             if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1))))
               throw new Error('Trusted publishing needs npm 11.5.1 or later, found ' + process.argv[1]);
           " "$(npm --version)"
-          npm publish datin.tgz --access public --tag latest --ignore-scripts --provenance=false
+          npm publish datin.tgz --access public --tag latest --ignore-scripts --provenance
       - name: Verify the published version
         run: |
           version="${GITHUB_REF_NAME#v}"
