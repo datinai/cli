@@ -26,7 +26,7 @@ The CLI collects anonymous command usage and onboarding progress, linked by rand
 
 Bug reports and feature ideas are welcome—ask your agent to send feedback through Datin. Please discuss code changes with the maintainers before opening a pull request.
 
-Repository contributors can find local setup, checks, CLI behavior and release instructions in the [development guide](https://github.com/datinai/cli/blob/main/CONTRIBUTING.md). The repository is currently private, so this link requires access.
+Local setup, checks, CLI behavior and release instructions are in the [development guide](https://github.com/datinai/cli/blob/main/CONTRIBUTING.md).
 
 ## Acknowledgements
 
