@@ -15,7 +15,7 @@ Muse Code does not show you the model or effort of this chat, and its config fil
 Choose in this order:
 
 1. **`/loop 3h`** in a session: fine while the session lives, but it ends with the session and expires after 7 days. Tell the user that.
-2. **A launchd/cron job** running `muse exec "Run datin check --json and follow the datin skill recurring-check instructions" --approval-mode never` with a sandbox network setting that allows `api.datinapp.com` (check `muse exec --help` for the current flag). Never `--yolo`, `--disable-sandbox` or `--disable-approval` for unattended runs.
+2. **A launchd/cron job** running `DATIN_UNATTENDED=1 muse exec "Run datin check --json and follow the datin skill recurring-check instructions" --approval-mode never` with a sandbox network setting that allows `api.datinapp.com` (check `muse exec --help` for the current flag). Never `--yolo`, `--disable-sandbox` or `--disable-approval` for unattended runs.
 
 After the job exists, run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
 

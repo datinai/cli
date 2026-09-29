@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AcknowledgeUpdatesData, AcknowledgeUpdatesErrors, AcknowledgeUpdatesResponses, BlockPersonData, BlockPersonErrors, BlockPersonResponses, CheckModelData, CheckModelErrors, CheckModelResponses, CheckUpdatesData, CheckUpdatesErrors, CheckUpdatesResponses, CreateFeedbackData, CreateFeedbackErrors, CreateFeedbackResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, ExportAccountData, ExportAccountErrors, ExportAccountResponses, FetchXPostsData, FetchXPostsErrors, FetchXPostsResponses, FinishDeviceLoginData, FinishDeviceLoginErrors, FinishDeviceLoginResponses, GetContactsData, GetContactsErrors, GetContactsResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetMeData, GetMeErrors, GetMeResponses, GetModelsData, GetModelsErrors, GetModelsResponses, GetOnboardingFactsData, GetOnboardingFactsErrors, GetOnboardingFactsResponses, GetProfileData, GetProfileErrors, GetProfileResponses, GetProfileTemplateData, GetProfileTemplateErrors, GetProfileTemplateResponses, GetWebConfigData, GetWebConfigErrors, GetWebConfigResponses, LikeRecData, LikeRecErrors, LikeRecResponses, ListMatchesData, ListMatchesErrors, ListMatchesResponses, ListRecsData, ListRecsErrors, ListRecsResponses, ListSourcesData, ListSourcesErrors, ListSourcesResponses, LogoutData, LogoutErrors, LogoutResponses, PassRecData, PassRecErrors, PassRecResponses, ReportPersonData, ReportPersonErrors, ReportPersonResponses, SaveContactsData, SaveContactsErrors, SaveContactsResponses, SaveMatchFeedbackData, SaveMatchFeedbackErrors, SaveMatchFeedbackResponses, SaveProfileData, SaveProfileErrors, SaveProfileResponses, SendTelemetryData, SendTelemetryErrors, SendTelemetryResponses, StartDeviceLoginData, StartDeviceLoginErrors, StartDeviceLoginResponses, SuggestLocationData, SuggestLocationErrors, SuggestLocationResponses } from './types.gen';
+import type { AcceptTermsData, AcceptTermsErrors, AcceptTermsResponses, AcknowledgeUpdatesData, AcknowledgeUpdatesErrors, AcknowledgeUpdatesResponses, BlockPersonData, BlockPersonErrors, BlockPersonResponses, CheckModelData, CheckModelErrors, CheckModelResponses, CheckUpdatesData, CheckUpdatesErrors, CheckUpdatesResponses, CreateFeedbackData, CreateFeedbackErrors, CreateFeedbackResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, ExportAccountData, ExportAccountErrors, ExportAccountResponses, FetchXPostsData, FetchXPostsErrors, FetchXPostsResponses, FinishDeviceLoginData, FinishDeviceLoginErrors, FinishDeviceLoginResponses, GetContactsData, GetContactsErrors, GetContactsResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetMeData, GetMeErrors, GetMeResponses, GetModelsData, GetModelsErrors, GetModelsResponses, GetOnboardingFactsData, GetOnboardingFactsErrors, GetOnboardingFactsResponses, GetProfileData, GetProfileErrors, GetProfileResponses, GetProfileTemplateData, GetProfileTemplateErrors, GetProfileTemplateResponses, GetTermsData, GetTermsErrors, GetTermsResponses, GetWebConfigData, GetWebConfigErrors, GetWebConfigResponses, LikeRecData, LikeRecErrors, LikeRecResponses, ListMatchesData, ListMatchesErrors, ListMatchesResponses, ListRecsData, ListRecsErrors, ListRecsResponses, ListSourcesData, ListSourcesErrors, ListSourcesResponses, LogoutData, LogoutErrors, LogoutResponses, PassRecData, PassRecErrors, PassRecResponses, ReportPersonData, ReportPersonErrors, ReportPersonResponses, SaveContactsData, SaveContactsErrors, SaveContactsResponses, SaveMatchFeedbackData, SaveMatchFeedbackErrors, SaveMatchFeedbackResponses, SaveProfileData, SaveProfileErrors, SaveProfileResponses, SendTelemetryData, SendTelemetryErrors, SendTelemetryResponses, StartDeviceLoginData, StartDeviceLoginErrors, StartDeviceLoginResponses, SuggestLocationData, SuggestLocationErrors, SuggestLocationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -162,6 +162,24 @@ export const deleteAccount = <ThrowOnError extends boolean = false>(options: Opt
  */
 export const sendTelemetry = <ThrowOnError extends boolean = false>(options: Options<SendTelemetryData, ThrowOnError>): RequestResult<SendTelemetryResponses, SendTelemetryErrors, ThrowOnError> => (options.client ?? client).post<SendTelemetryResponses, SendTelemetryErrors, ThrowOnError>({
     url: '/v1/t',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * The current version of datin's terms and privacy policy, and where to read them
+ */
+export const getTerms = <ThrowOnError extends boolean = false>(options?: Options<GetTermsData, ThrowOnError>): RequestResult<GetTermsResponses, GetTermsErrors, ThrowOnError> => (options?.client ?? client).get<GetTermsResponses, GetTermsErrors, ThrowOnError>({ url: '/v1/terms', ...options });
+
+/**
+ * Record the user's yes to the current terms and privacy policy
+ */
+export const acceptTerms = <ThrowOnError extends boolean = false>(options: Options<AcceptTermsData, ThrowOnError>): RequestResult<AcceptTermsResponses, AcceptTermsErrors, ThrowOnError> => (options.client ?? client).post<AcceptTermsResponses, AcceptTermsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/terms/accept',
     ...options,
     headers: {
         'Content-Type': 'application/json',

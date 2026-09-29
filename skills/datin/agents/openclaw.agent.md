@@ -12,7 +12,7 @@ The "Runtime" line of your system prompt names the model of this session. Run `d
 
 ## The recurring check
 
-Use the heartbeat, which is built in and runs on this machine: add a line to `HEARTBEAT.md` in the workspace saying to run the datin skill's recurring check every 3 hours, or set `agents.defaults.heartbeat.every` to `"3h"` in the gateway config. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
+Use the heartbeat, which is built in and runs on this machine: add a line to `HEARTBEAT.md` in the workspace saying to run the datin skill's recurring check (`DATIN_UNATTENDED=1 datin check --json`) every 3 hours, or set `agents.defaults.heartbeat.every` to `"3h"` in the gateway config. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
 
 ## Reading your own history (source `openclaw-history`)
 

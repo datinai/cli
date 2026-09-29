@@ -103,6 +103,24 @@ describe("anonymous usage data", () => {
     expect(api.events.at(-1)?.onboarding_attempt_id).toBeUndefined();
   });
 
+  test("installs that saw the shorter notice see the full list once, and nothing is reported on that run", async () => {
+    const env = machine();
+    const api = recorder();
+    mkdirSync(join(env.XDG_CONFIG_HOME, "datin"), { recursive: true });
+    writeFileSync(
+      join(env.XDG_CONFIG_HOME, "datin", "telemetry.json"),
+      '{"installId":"old-install","enabled":true,"noticeVersion":2}',
+    );
+    const first = await datin(["models"], api.respond, { env });
+    for (const field of ["random install ID", "how long it took", "OS and Node versions"]) {
+      expect(first.stderr).toContain(field);
+    }
+    expect(api.events).toHaveLength(0);
+    const second = await datin(["models"], api.respond, { env });
+    expect(second.stderr).not.toContain("random install ID");
+    expect(api.events).toHaveLength(1);
+  });
+
   test("DO_NOT_TRACK, DATIN_TELEMETRY_DISABLED, CI and `telemetry disable` each send nothing", async () => {
     const switches: Record<string, string>[] = [
       { DO_NOT_TRACK: "1" },

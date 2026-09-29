@@ -15,10 +15,10 @@ pi does not show you the model or effort of this chat, and its config files only
 pi has no scheduler and no daemon. Offer a cron job:
 
 ```
-0 */3 * * * cd ~ && pi -p "Run datin check --json and follow the datin skill recurring-check instructions" --mode json >> ~/.datin/checks.log 2>&1
+0 */3 * * * cd ~ && DATIN_UNATTENDED=1 pi -p "Run datin check --json and follow the datin skill recurring-check instructions" --mode json >> ~/.datin/checks.log 2>&1
 ```
 
-Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
+pi has no per-command allow rule, so `DATIN_UNATTENDED=1` is what keeps the job to `datin check` and status commands. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
 
 ## Reading your own history (source `pi-history`)
 

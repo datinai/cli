@@ -12,7 +12,7 @@ Grok Build does not show you the model or effort of this chat, and its config fi
 
 ## The recurring check
 
-`/loop 3h` and `scheduler_create` only run while this session is alive. Offer them for now, say so, and set up a launchd/cron job that runs `grok -p "Run datin check --json and follow the datin skill recurring-check instructions"` every 3 hours with `--permission-mode dontAsk` and an allow rule for `datin` commands. Never `--always-approve` or `--yolo` for unattended runs. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
+`/loop 3h` and `scheduler_create` only run while this session is alive. Offer them for now, say so, and set up a launchd/cron job that runs `DATIN_UNATTENDED=1 grok -p "Run datin check --json and follow the datin skill recurring-check instructions"` every 3 hours with `--permission-mode dontAsk` and an allow rule for `datin check` only. Never `--always-approve` or `--yolo` for unattended runs. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
 
 ## Reading your own history (source `grok-history`)
 

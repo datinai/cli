@@ -36,7 +36,7 @@ export type ErrorEnvelope = {
     next?: Array<NextCommand>;
 };
 
-export type ErrorCode = 'auth_required' | 'login_pending' | 'login_expired' | 'account_disabled' | 'not_found' | 'profile_conflict' | 'validation_failed' | 'rate_limited' | 'consent_required' | 'source_disabled' | 'reconnect_required' | 'internal_error';
+export type ErrorCode = 'auth_required' | 'login_pending' | 'login_expired' | 'account_disabled' | 'not_found' | 'profile_conflict' | 'validation_failed' | 'rate_limited' | 'consent_required' | 'source_disabled' | 'reconnect_required' | 'update_required' | 'internal_error';
 
 export type ModelsResponse = {
     ok: true;
@@ -478,6 +478,46 @@ export type TelemetryEvent = {
 
 export type OnboardingStep = 'model_check' | 'login' | 'sources' | 'interview' | 'draft' | 'push' | 'contacts' | 'schedule' | 'recommendations';
 
+export type TermsResponse = {
+    ok: true;
+    data: Terms;
+    /**
+     * One line a person or agent can repeat as-is
+     */
+    summary?: string;
+    next?: Array<NextCommand>;
+};
+
+export type Terms = {
+    /**
+     * Accept exactly this version
+     */
+    version: number;
+    urls: {
+        terms: string;
+        privacy: string;
+    };
+};
+
+export type AcceptTermsResponse = {
+    ok: true;
+    data: TermsAccepted;
+    /**
+     * One line a person or agent can repeat as-is
+     */
+    summary?: string;
+    next?: Array<NextCommand>;
+};
+
+export type TermsAccepted = {
+    accepted: true;
+    version: number;
+};
+
+export type AcceptTermsRequest = {
+    version: number;
+};
+
 export type SourcesResponse = {
     ok: true;
     data: {
@@ -557,7 +597,10 @@ export type Recommendations = {
      * Selection did not finish, or some pairs could not be judged. Do not claim the pool is exhausted
      */
     incomplete?: boolean;
-    incomplete_reasons?: Array<'evaluation_budget' | 'judge_unavailable' | 'selection_changed'>;
+    /**
+     * `daily_limit`: no new cards until tomorrow; the cards already held still show
+     */
+    incomplete_reasons?: Array<'evaluation_budget' | 'judge_unavailable' | 'selection_changed' | 'daily_limit'>;
     /**
      * Mutual gate on seeking and age range, then the judge's reciprocal score; `rules` alone when the judge is off
      */
@@ -574,7 +617,7 @@ export type Recommendation = Card & {
      */
     score: number;
     /**
-     * Facts behind the score, e.g. `both in Tbilisi`, `life goals: clearly aligned`
+     * Facts behind the score, e.g. `both in Tbilisi`, `shared ground: a fair amount`
      */
     reasons: Array<string>;
     judge?: JudgeSummary;
@@ -590,23 +633,7 @@ export type JudgeSummary = {
      */
     viewer_likes: number;
     /**
-     * Probability they would want to meet the user, 0 to 1
-     */
-    candidate_likes: number;
-    /**
-     * Harmonic mean of the two, less any dealbreaker hit, 0 to 1
-     */
-    mutual: number;
-    /**
-     * Probability one side's dealbreakers apply to the other, 0 to 1
-     */
-    dealbreaker: number;
-    /**
-     * Alignment of what each wants from a relationship, 0 to 3
-     */
-    life_goals: number;
-    /**
-     * How much they would enjoy time together, 0 to 3
+     * How much their `about` and `interests` suggest they would enjoy time together, 0 to 3
      */
     shared_ground: number;
 };
@@ -857,6 +884,10 @@ export type GetHealthErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -917,6 +948,10 @@ export type GetModelsErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -989,6 +1024,10 @@ export type CheckModelErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1050,6 +1089,10 @@ export type GetMeErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1110,6 +1153,10 @@ export type StartDeviceLoginErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1174,6 +1221,10 @@ export type FinishDeviceLoginErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1234,6 +1285,10 @@ export type LogoutErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1296,6 +1351,10 @@ export type GetProfileTemplateErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1356,6 +1415,10 @@ export type GetProfileErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1418,6 +1481,10 @@ export type SaveProfileErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1479,6 +1546,10 @@ export type GetContactsErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1539,6 +1610,10 @@ export type SaveContactsErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1603,6 +1678,10 @@ export type SuggestLocationErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1663,6 +1742,10 @@ export type GetOnboardingFactsErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1725,6 +1808,10 @@ export type ExportAccountErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1785,6 +1872,10 @@ export type DeleteAccountErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1847,6 +1938,10 @@ export type SendTelemetryErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -1874,6 +1969,136 @@ export type SendTelemetryResponses = {
 };
 
 export type SendTelemetryResponse = SendTelemetryResponses[keyof SendTelemetryResponses];
+
+export type GetTermsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/terms';
+};
+
+export type GetTermsErrors = {
+    /**
+     * A login that is still pending or has expired
+     */
+    400: ErrorEnvelope;
+    /**
+     * Not logged in, or the token is no longer valid
+     */
+    401: ErrorEnvelope;
+    /**
+     * The account is disabled
+     */
+    403: ErrorEnvelope;
+    /**
+     * Not found
+     */
+    404: ErrorEnvelope;
+    /**
+     * The resource changed since it was read, or a connected account has to be connected again
+     */
+    409: ErrorEnvelope;
+    /**
+     * The request did not pass validation
+     */
+    422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
+     * The user has not agreed to this step yet
+     */
+    428: ErrorEnvelope;
+    /**
+     * Too many requests
+     */
+    429: ErrorEnvelope;
+    /**
+     * Unexpected failure
+     */
+    500: ErrorEnvelope;
+    /**
+     * This data source is switched off
+     */
+    503: ErrorEnvelope;
+};
+
+export type GetTermsError = GetTermsErrors[keyof GetTermsErrors];
+
+export type GetTermsResponses = {
+    /**
+     * The current terms
+     */
+    200: TermsResponse;
+};
+
+export type GetTermsResponse = GetTermsResponses[keyof GetTermsResponses];
+
+export type AcceptTermsData = {
+    body: AcceptTermsRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/terms/accept';
+};
+
+export type AcceptTermsErrors = {
+    /**
+     * A login that is still pending or has expired
+     */
+    400: ErrorEnvelope;
+    /**
+     * Not logged in, or the token is no longer valid
+     */
+    401: ErrorEnvelope;
+    /**
+     * The account is disabled
+     */
+    403: ErrorEnvelope;
+    /**
+     * Not found
+     */
+    404: ErrorEnvelope;
+    /**
+     * The resource changed since it was read, or a connected account has to be connected again
+     */
+    409: ErrorEnvelope;
+    /**
+     * The request did not pass validation
+     */
+    422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
+     * The user has not agreed to this step yet
+     */
+    428: ErrorEnvelope;
+    /**
+     * Too many requests
+     */
+    429: ErrorEnvelope;
+    /**
+     * Unexpected failure
+     */
+    500: ErrorEnvelope;
+    /**
+     * This data source is switched off
+     */
+    503: ErrorEnvelope;
+};
+
+export type AcceptTermsError = AcceptTermsErrors[keyof AcceptTermsErrors];
+
+export type AcceptTermsResponses = {
+    /**
+     * Accepted
+     */
+    200: AcceptTermsResponse;
+};
+
+export type AcceptTermsResponse2 = AcceptTermsResponses[keyof AcceptTermsResponses];
 
 export type ListSourcesData = {
     body?: never;
@@ -1907,6 +2132,10 @@ export type ListSourcesErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -1971,6 +2200,10 @@ export type FetchXPostsErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2031,6 +2264,10 @@ export type ListRecsErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -2098,6 +2335,10 @@ export type LikeRecErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2164,6 +2405,10 @@ export type PassRecErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2225,6 +2470,10 @@ export type ListMatchesErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2285,6 +2534,10 @@ export type CheckUpdatesErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -2348,6 +2601,10 @@ export type AcknowledgeUpdatesErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -2416,6 +2673,10 @@ export type SaveMatchFeedbackErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2476,6 +2737,10 @@ export type CreateFeedbackErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */
@@ -2543,6 +2808,10 @@ export type BlockPersonErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2609,6 +2878,10 @@ export type ReportPersonErrors = {
      */
     422: ErrorEnvelope;
     /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
+    /**
      * The user has not agreed to this step yet
      */
     428: ErrorEnvelope;
@@ -2669,6 +2942,10 @@ export type GetWebConfigErrors = {
      * The request did not pass validation
      */
     422: ErrorEnvelope;
+    /**
+     * This datin CLI is too old; update it and run the command again
+     */
+    426: ErrorEnvelope;
     /**
      * The user has not agreed to this step yet
      */

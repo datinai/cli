@@ -1,5 +1,5 @@
 import { type Client, createClient, createConfig } from "@datin/api-client";
-import { type DatinError, fromEnvelope, isErrorEnvelope, localError } from "./errors.ts";
+import { type DatinError, dailyLimitOf, fromEnvelope, isErrorEnvelope, localError } from "./errors.ts";
 import type { CommandOutput } from "./output.ts";
 import { err, ok, ResultAsync } from "./result.ts";
 
@@ -42,7 +42,8 @@ export interface ApiOptions {
 const LONGEST_AUTOMATIC_WAIT_SECONDS = 15;
 
 function shortWait(error: DatinError): number | undefined {
-  const seconds = error.code === "rate_limited" ? error.details?.retry_after_seconds : undefined;
+  if (error.code !== "rate_limited" || dailyLimitOf(error) !== undefined) return undefined;
+  const seconds = error.details?.retry_after_seconds;
   return typeof seconds === "number" && seconds <= LONGEST_AUTOMATIC_WAIT_SECONDS ? seconds : undefined;
 }
 

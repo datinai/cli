@@ -15,7 +15,7 @@ Your system prompt's session line names the model and provider of this chat. Run
 Use the built-in cron, which runs on this machine and survives restarts:
 
 ```sh
-hermes cron create "every 3h" "Run datin check --json and follow the datin skill recurring-check instructions" --name datin
+hermes cron create "every 3h" "Run DATIN_UNATTENDED=1 datin check --json and follow the datin skill recurring-check instructions" --name datin
 ```
 
 `hermes cron list` shows it; `hermes gateway install` keeps the gateway running after a reboot. Then run `datin schedule confirm --every 3h --job "<scheduler job id or path>"`.
