@@ -1540,6 +1540,9 @@
             "maxLength": 40,
             "pattern": "^[a-z_]+$"
           },
+          "usage_error": {
+            "$ref": "#/components/schemas/UsageError"
+          },
           "duration_ms": {
             "type": "integer",
             "minimum": 0
@@ -1581,6 +1584,22 @@
           "schedule",
           "recommendations"
         ]
+      },
+      "UsageError": {
+        "type": "string",
+        "enum": [
+          "unknown_command",
+          "unknown_option",
+          "missing_argument",
+          "missing_option_value",
+          "missing_required_option",
+          "missing_subcommand",
+          "invalid_argument",
+          "excess_arguments",
+          "conflicting_options",
+          "other"
+        ],
+        "description": "Sent with `usage_error` when the command line could not be parsed; `command` is as far as it got"
       },
       "TermsResponse": {
         "type": "object",

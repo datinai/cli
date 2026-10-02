@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { platform } from "node:os";
 import { join } from "node:path";
-import { type Client, type OnboardingStep, sendTelemetry } from "@datin/api-client";
+import { type Client, type OnboardingStep, sendTelemetry, type UsageError } from "@datin/api-client";
 import type { Deps } from "../context.ts";
 import { readState, updateState } from "./home.ts";
 import { configDir } from "./paths.ts";
@@ -68,6 +68,7 @@ export interface CommandRun {
   readonly flags: string[];
   readonly ok: boolean;
   readonly errorCode: string | undefined;
+  readonly usageError?: UsageError;
   readonly durationMs: number;
 }
 
@@ -108,6 +109,7 @@ export async function report(deps: Deps, client: Client, run: CommandRun): Promi
         flags: run.flags,
         ok: run.ok,
         ...(run.errorCode && { error_code: run.errorCode }),
+        ...(run.usageError && { usage_error: run.usageError }),
         duration_ms: run.durationMs,
         cli_version: deps.version,
         os: platform(),

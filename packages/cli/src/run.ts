@@ -1,5 +1,5 @@
-import { Command, CommanderError, InvalidArgumentError } from "@commander-js/extra-typings";
-import type { OnboardingStep } from "@datin/api-client";
+import { Command, CommanderError, type CommandUnknownOpts, InvalidArgumentError } from "@commander-js/extra-typings";
+import type { OnboardingStep, UsageError } from "@datin/api-client";
 import { registerAccount } from "./commands/account.ts";
 import { registerAgent } from "./commands/agent.ts";
 import { registerAuth } from "./commands/auth.ts";
@@ -35,6 +35,28 @@ export interface RunState {
   errorCode: string | undefined;
   /** Filled in just before a command's action runs; stays undefined when parsing never got that far. */
   ran: Pick<CommandRun, "command" | "flags"> | undefined;
+  /** What was wrong with a command line that could not be parsed. */
+  usageError?: UsageError;
+}
+
+/** Commander's parse failures, under the names telemetry may send; anything else is `other`. */
+const USAGE_ERRORS: Readonly<Record<string, UsageError>> = {
+  "commander.unknownCommand": "unknown_command",
+  "commander.unknownOption": "unknown_option",
+  "commander.missingArgument": "missing_argument",
+  "commander.optionMissingArgument": "missing_option_value",
+  "commander.missingMandatoryOptionValue": "missing_required_option",
+  "commander.help": "missing_subcommand",
+  "commander.invalidArgument": "invalid_argument",
+  "commander.excessArguments": "excess_arguments",
+  "commander.conflictingOption": "conflicting_options",
+};
+
+/** A command's path below the program, such as `recs like`; empty for the program itself. */
+function commandPath(command: CommandUnknownOpts): string {
+  const names: string[] = [];
+  for (let at: CommandUnknownOpts | null = command; at?.parent; at = at.parent) names.unshift(at.name());
+  return names.join(" ");
 }
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -163,14 +185,12 @@ export function createProgram(deps: Deps, state: RunState) {
 
   // Flag names only, from both the command and the global options, and only the ones actually typed.
   program.hook("preAction", (_root, action) => {
-    const names: string[] = [];
-    for (let command: typeof action | null = action; command; command = command.parent) names.unshift(command.name());
     const typed = [program, action].flatMap((command) =>
       command.options
         .filter((option) => command.getOptionValueSource(option.attributeName()) === "cli")
         .map((option) => option.attributeName()),
     );
-    state.ran = { command: names.slice(1).join(" "), flags: [...new Set(typed)].sort() };
+    state.ran = { command: commandPath(action), flags: [...new Set(typed)].sort() };
   });
 
   registerAuth(program, finish);
@@ -244,6 +264,9 @@ export async function run(argv: readonly string[], deps: Deps): Promise<number> 
     }).failure(usageError(program, error));
     state.exitCode = exitCodes.usage_error;
     state.errorCode = "usage_error";
+    state.usageError = USAGE_ERRORS[error.code] ?? "other";
+    // As far as parsing got, in datin's own command names: the words that were typed are never reported.
+    state.ran ??= { command: commandPath(commandNamedBy(program)) || "(not recognised)", flags: [] };
   }
 
   const ran = state.ran ?? { command: "(not recognised)", flags: [] };
@@ -259,6 +282,7 @@ export async function run(argv: readonly string[], deps: Deps): Promise<number> 
       onboarding: state.onboarding,
       ok: state.exitCode === 0,
       errorCode: state.errorCode,
+      usageError: state.usageError,
       durationMs: deps.now().getTime() - startedAt,
     });
   }

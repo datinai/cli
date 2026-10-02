@@ -66,6 +66,30 @@ describe("anonymous usage data", () => {
     expect(api.events[1]?.install_id).toBe(api.events[0]?.install_id);
   });
 
+  test("a command line that can't be parsed reports how far it got and what was wrong, never what was typed", async () => {
+    const env = machine();
+    const api = recorder();
+    await datin(["models"], api.respond, { env }); // notice, no event
+    const cases = [
+      [["make-me-a-match"], "(not recognised)", "unknown_command"],
+      [["recs"], "recs", "missing_subcommand"],
+      [["recs", "like"], "recs like", "missing_argument"],
+      [["recs", "list", "--password=hunter2"], "recs list", "unknown_option"],
+    ] as const;
+    for (const [argv, command, kind] of cases) {
+      await datin([...argv], api.respond, { env });
+      expect(api.events.at(-1)).toMatchObject({
+        command,
+        flags: [],
+        ok: false,
+        error_code: "usage_error",
+        usage_error: kind,
+      });
+    }
+    expect(JSON.stringify(api.events)).not.toContain("hunter2");
+    expect(JSON.stringify(api.events)).not.toContain("make-me-a-match");
+  });
+
   test("completed steps report immediately, share an attempt across calls, and start fresh after logout", async () => {
     const env = machine();
     const api = recorder();
