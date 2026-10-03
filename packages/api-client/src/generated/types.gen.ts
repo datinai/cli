@@ -855,6 +855,10 @@ export type WebConfig = {
      * Public key of the Turnstile widget shown before sign-in; null while the check is switched off
      */
     turnstile_site_key: string | null;
+    /**
+     * The terms and privacy policy version the sign-in page shows; signing in agrees to it
+     */
+    terms_version: number;
 };
 
 export type GetHealthData = {

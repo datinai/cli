@@ -2628,10 +2628,15 @@
               "null"
             ],
             "description": "Public key of the Turnstile widget shown before sign-in; null while the check is switched off"
+          },
+          "terms_version": {
+            "type": "integer",
+            "description": "The terms and privacy policy version the sign-in page shows; signing in agrees to it"
           }
         },
         "required": [
-          "turnstile_site_key"
+          "turnstile_site_key",
+          "terms_version"
         ]
       }
     },
