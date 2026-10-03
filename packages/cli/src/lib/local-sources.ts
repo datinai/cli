@@ -20,11 +20,13 @@ export interface SourceDecision {
 export function sourcesComplete(
   sources: readonly Source[],
   decisions: Readonly<Record<string, SourceDecision>>,
+  notHere: ReadonlySet<string>,
 ): boolean {
   // Only the agent histories are part of setup; computer history and connected accounts are optional extras
-  // the user may ask for later, so leaving them undecided never holds onboarding open.
+  // the user may ask for later, so leaving them undecided never holds onboarding open. Nor does a history
+  // this machine doesn't have: it is never offered.
   return sources
-    .filter((source) => source.enabled && source.id.endsWith("-history"))
+    .filter((source) => source.enabled && source.id.endsWith("-history") && !notHere.has(source.id))
     .every((source) => {
       const decision = decisions[source.id];
       return (
@@ -98,6 +100,39 @@ interface HistoryLocation {
 }
 
 const home = (...parts: string[]) => join(homedir(), ...parts);
+
+/**
+ * Whether an agent history exists on this machine: one `stat` of each place it lives, never a listing or a read,
+ * so the agent can offer only the histories that are there. Undefined for a source without a fixed location.
+ */
+export async function onThisMachine(id: string, env: Env): Promise<boolean | undefined> {
+  const location = HISTORY_LOCATIONS[id];
+  if (!location) return undefined;
+  const root = location.root(env);
+  const found = await Promise.all([
+    ...location.within.map((part) =>
+      stat(join(root, part)).then(
+        (info) => info.isDirectory(),
+        () => false,
+      ),
+    ),
+    ...location.startWith.map((name) =>
+      stat(join(root, name)).then(
+        (info) => info.isFile(),
+        () => false,
+      ),
+    ),
+  ]);
+  return found.some(Boolean);
+}
+
+/** The catalogue's agent histories that this machine doesn't have. */
+export async function historiesNotHere(sources: readonly Source[], env: Env): Promise<ReadonlySet<string>> {
+  const here = await Promise.all(
+    sources.map(async (source) => [source.id, await onThisMachine(source.id, env)] as const),
+  );
+  return new Set(here.filter(([, present]) => present === false).map(([id]) => id));
+}
 
 /** Where each agent keeps its history. The CLI only measures these; reading them is the agent's job, after a yes. */
 export const HISTORY_LOCATIONS: Readonly<Record<string, HistoryLocation>> = {

@@ -81,7 +81,16 @@ function fakeApi() {
 
 const machine = () => {
   const scratch = mkdtempSync(join(tmpdir(), "datin-profile-"));
-  return { XDG_CONFIG_HOME: join(scratch, "config"), DATIN_HOME: join(scratch, "home"), DATIN_TOKEN: "tok" };
+  // Claude's and Codex's histories exist here, whatever the machine running the tests has.
+  mkdirSync(join(scratch, "claude", "projects"), { recursive: true });
+  mkdirSync(join(scratch, "codex", "sessions"), { recursive: true });
+  return {
+    XDG_CONFIG_HOME: join(scratch, "config"),
+    DATIN_HOME: join(scratch, "home"),
+    DATIN_TOKEN: "tok",
+    CLAUDE_CONFIG_DIR: join(scratch, "claude"),
+    CODEX_HOME: join(scratch, "codex"),
+  };
 };
 const fileOf = (env: { DATIN_HOME: string }) => join(env.DATIN_HOME, "datin.md");
 
