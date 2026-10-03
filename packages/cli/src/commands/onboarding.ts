@@ -4,7 +4,7 @@ import { describe, type Finish } from "../define-command.ts";
 import { apiErrors } from "../lib/errors.ts";
 import { hashOf, readProfileFile, readState, sectionsOf } from "../lib/home.ts";
 import { fromLocal } from "../lib/local.ts";
-import { readDecisions, sourcesComplete } from "../lib/local-sources.ts";
+import { historiesNotHere, readDecisions, sourcesComplete } from "../lib/local-sources.ts";
 import { errAsync, okAsync, ResultAsync } from "../lib/result.ts";
 
 type StepState = "done" | "current" | "todo" | "unavailable";
@@ -74,10 +74,18 @@ export function registerOnboarding(program: Command, finish: Finish): void {
                 server,
                 context.api
                   .call((client) => listSources({ client }))
-                  .map(({ data }): readonly Source[] | undefined => data.sources)
+                  .andThen(({ data }) =>
+                    fromLocal(
+                      historiesNotHere(data.sources, context.deps.env),
+                      "check which agent histories are on this machine",
+                    ).map((notHere): { sources: readonly Source[]; notHere: ReadonlySet<string> } | undefined => ({
+                      sources: data.sources,
+                      notHere,
+                    })),
+                  )
                   // Offline, the rest of the report still stands; the sources step just cannot be judged.
                   .orElse(() => okAsync(undefined)),
-              ]).map(([facts, sources]) => {
+              ]).map(([facts, catalogue]) => {
                 const loggedIn = facts !== undefined;
                 const draftHasContent =
                   draft !== undefined && [...sectionsOf(draft).values()].some((body) => body.length > 0);
@@ -106,7 +114,7 @@ export function registerOnboarding(program: Command, finish: Finish): void {
                     title: "Go through the data sources with the user: ask, then read the ones they agree to",
                     why: "To draft datin.md for them. Every source needs a yes first; a no is fine and is recorded too",
                     next: ["datin sources list --json"],
-                    done: sources !== undefined && sourcesComplete(sources, decisions),
+                    done: catalogue !== undefined && sourcesComplete(catalogue.sources, decisions, catalogue.notHere),
                   },
                   {
                     id: "interview",

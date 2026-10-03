@@ -21,6 +21,54 @@ function machine() {
   return { XDG_CONFIG_HOME: join(scratch, "config"), DATIN_HOME: join(scratch, "home"), CLAUDE_CONFIG_DIR: claude };
 }
 
+describe("which agent histories are on this machine", () => {
+  // Every other history's home points at an empty scratch folder, so only Claude's exists here.
+  const onlyClaude = () => {
+    const env = machine();
+    const nowhere = mkdtempSync(join(tmpdir(), "datin-nowhere-"));
+    return {
+      ...env,
+      CODEX_HOME: join(nowhere, "codex"),
+      GROK_HOME: join(nowhere, "grok"),
+      HERMES_HOME: join(nowhere, "hermes"),
+    };
+  };
+  const sourcesStep = async (
+    env: Record<string, string>,
+    respond: (request: Request) => Response | Promise<Response>,
+  ) => {
+    const steps = JSON.parse((await datin(["onboarding", "status"], respond, { env })).stdout).data.steps;
+    return (steps as { id: string; state: string }[]).find((step) => step.id === "sources")?.state;
+  };
+
+  test("the list says which are here before any yes, without opening them", async () => {
+    const env = onlyClaude();
+    const result = await datin(
+      ["sources", "list", "--json"],
+      api([source("claude-history"), source("codex-history"), source("x")]),
+      { env },
+    );
+    const listed = JSON.parse(result.stdout).data.sources as { id: string; on_this_machine?: boolean }[];
+    expect(Object.fromEntries(listed.map((s) => [s.id, s.on_this_machine]))).toEqual({
+      "claude-history": true,
+      "codex-history": false,
+      x: undefined,
+    });
+    expect(result.stdout).not.toContain("PRIVATE");
+  });
+
+  test("a history that isn't here never holds setup open; with none here, the step is already done", async () => {
+    const env = onlyClaude();
+    const respond = api([source("claude-history"), source("codex-history")]);
+    expect(await sourcesStep(env, respond)).not.toBe("done");
+    await datin(["sources", "consent", "claude-history", "--declined"], respond, { env });
+    expect(await sourcesStep(env, respond)).toBe("done");
+
+    const empty = { ...onlyClaude(), CLAUDE_CONFIG_DIR: join(mkdtempSync(join(tmpdir(), "datin-nowhere-")), "claude") };
+    expect(await sourcesStep(empty, respond)).toBe("done");
+  });
+});
+
 describe("local sources are gated by the user's recorded yes", () => {
   test("detect and prompt refuse with consent_required, and the refusal carries what, why and where it goes", async () => {
     const env = machine();

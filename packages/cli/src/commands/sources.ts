@@ -9,8 +9,10 @@ import { fromLocal } from "../lib/local.ts";
 import {
   evidenceDir,
   extractionPrompt,
+  historiesNotHere,
   markStatus,
   measure,
+  onThisMachine,
   readDecisions,
   recordDecision,
   sourcesComplete,
@@ -92,15 +94,40 @@ export function registerSources(program: Command, finish: Finish): void {
   describe(
     sources
       .command("list")
-      .description("Every data source, whether it is switched on right now, and what to tell the user before using it")
+      .description(
+        "Every data source, whether it is switched on right now, what to tell the user before using it, and for agent histories whether they are on this machine (it only checks that their folder exists)",
+      )
       .action(() =>
         finish(
-          (context) => context.api.call((client) => listSources({ client })),
+          (context) =>
+            context.api
+              .call((client) => listSources({ client }))
+              .andThen(({ data }) =>
+                fromLocal(
+                  Promise.all([
+                    Promise.all(
+                      data.sources.map(async (source) => {
+                        const here = await onThisMachine(source.id, context.deps.env);
+                        return here === undefined ? source : { ...source, on_this_machine: here };
+                      }),
+                    ),
+                    readDecisions(context.deps.env),
+                  ]),
+                  "check which agent histories are on this machine",
+                ).map(([sources, decisions]) => {
+                  const notHere = new Set(
+                    sources.filter((s) => "on_this_machine" in s && !s.on_this_machine).map((s) => s.id),
+                  );
+                  // With nothing on this machine to ask about, the sources step is already done.
+                  if (sourcesComplete(data.sources, decisions, notHere)) context.trackOnboarding("sources");
+                  return { data: { sources } };
+                }),
+              ),
           ({ data }) =>
             data.sources
               .map(
                 (source) =>
-                  `${source.enabled ? "on " : "off"} ${source.id} (${source.kind})${source.disabled_reason ? `: ${source.disabled_reason}` : ""}`,
+                  `${source.enabled ? "on " : "off"} ${source.id} (${source.kind})${source.disabled_reason ? `: ${source.disabled_reason}` : ""}${"on_this_machine" in source && !source.on_this_machine ? " — not on this machine" : ""}`,
               )
               .join("\n"),
         ),
@@ -135,9 +162,14 @@ export function registerSources(program: Command, finish: Finish): void {
               ),
               "save the user's answer on this machine",
             )
-              .andThen(() => fromLocal(readDecisions(context.deps.env), "read source completion"))
-              .map((decisions) => {
-                if (sourcesComplete(catalogue, decisions)) context.trackOnboarding("sources");
+              .andThen(() =>
+                fromLocal(
+                  Promise.all([readDecisions(context.deps.env), historiesNotHere(catalogue, context.deps.env)]),
+                  "read source completion",
+                ),
+              )
+              .map(([decisions, notHere]) => {
+                if (sourcesComplete(catalogue, decisions, notHere)) context.trackOnboarding("sources");
                 return {
                   data: { source, consent, consent_version: known.consent.version },
                   summary:
@@ -251,7 +283,8 @@ export function registerSources(program: Command, finish: Finish): void {
                         context.deps.now(),
                       );
                     await markStatus(context.deps.env, source, status);
-                    if (sourcesComplete(catalogue, await readDecisions(context.deps.env)))
+                    const notHere = await historiesNotHere(catalogue, context.deps.env);
+                    if (sourcesComplete(catalogue, await readDecisions(context.deps.env), notHere))
                       context.trackOnboarding("sources");
                   })(),
                   "save the source's status on this machine",
