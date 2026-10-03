@@ -470,6 +470,7 @@ export type TelemetryEvent = {
     flags: Array<string>;
     ok: boolean;
     error_code?: string;
+    usage_error?: UsageError;
     duration_ms: number;
     cli_version: string;
     os: string;
@@ -477,6 +478,11 @@ export type TelemetryEvent = {
 };
 
 export type OnboardingStep = 'model_check' | 'login' | 'sources' | 'interview' | 'draft' | 'push' | 'contacts' | 'schedule' | 'recommendations';
+
+/**
+ * Sent with `usage_error` when the command line could not be parsed; `command` is as far as it got
+ */
+export type UsageError = 'unknown_command' | 'unknown_option' | 'missing_argument' | 'missing_option_value' | 'missing_required_option' | 'missing_subcommand' | 'invalid_argument' | 'excess_arguments' | 'conflicting_options' | 'other';
 
 export type TermsResponse = {
     ok: true;
@@ -849,6 +855,10 @@ export type WebConfig = {
      * Public key of the Turnstile widget shown before sign-in; null while the check is switched off
      */
     turnstile_site_key: string | null;
+    /**
+     * The terms and privacy policy version the sign-in page shows; signing in agrees to it
+     */
+    terms_version: number;
 };
 
 export type GetHealthData = {
