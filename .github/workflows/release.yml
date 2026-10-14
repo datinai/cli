@@ -55,7 +55,7 @@ jobs:
           jq -e '.ok == true and (.data.commands | length > 0)' commands.json
           node_modules/.bin/datin agent instructions codex --json > instructions.json
           jq -e '.ok == true and .data.agent == "codex" and (.data.markdown | length > 0)' instructions.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: npm-package
           path: ${{ runner.temp }}/datin.tgz
@@ -99,7 +99,7 @@ jobs:
           PATH='' "$binary" commands --json
       - name: Archive binary with executable permissions
         run: tar -czf dist/datin-${{ matrix.target }}.tar.gz -C dist/artifacts/${{ matrix.target }} datin${{ matrix.ext }}
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: datin-${{ matrix.target }}
           path: dist/datin-${{ matrix.target }}.tar.gz
