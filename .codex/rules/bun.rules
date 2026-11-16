@@ -1,0 +1,2 @@
+prefix_rule(pattern = [["npx", "yarn", "pnpm", "pnpx"]], decision = "forbidden", justification = "This repo uses bun: bun install / bun add / bun run / bunx.")
+prefix_rule(pattern = ["npm", ["install", "i", "ci", "run", "test", "exec"]], decision = "forbidden", justification = "This repo uses bun: bun install / bun add / bun run / bunx.")
